@@ -110,7 +110,7 @@ class MusicPlayerController private constructor(private val context: Context) {
         }
     }
 
-    private fun loadLocalSongs() {
+    fun loadLocalSongs() {
         val songs = mutableListOf<Song>()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -120,34 +120,38 @@ class MusicPlayerController private constructor(private val context: Context) {
             MediaStore.Audio.Media.DURATION
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
-        val cursor = context.contentResolver.query(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            null,
-            "${MediaStore.Audio.Media.TITLE} ASC"
-        )
+        try {
+            val cursor = context.contentResolver.query(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                null,
+                "${MediaStore.Audio.Media.TITLE} ASC"
+            )
 
-        cursor?.use {
-            val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val titleColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            cursor?.use {
+                val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val titleColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+                val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+                val albumColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
 
-            while (it.moveToNext()) {
-                val id = it.getLong(idColumn)
-                val title = it.getString(titleColumn) ?: "Unknown"
-                val artist = it.getString(artistColumn) ?: "Unknown"
-                val album = it.getString(albumColumn) ?: "Unknown"
-                val duration = it.getLong(durationColumn)
-                val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                songs.add(Song(id, title, artist, album, uri, duration))
+                while (it.moveToNext()) {
+                    val id = it.getLong(idColumn)
+                    val title = it.getString(titleColumn) ?: "Unknown"
+                    val artist = it.getString(artistColumn) ?: "Unknown"
+                    val album = it.getString(albumColumn) ?: "Unknown"
+                    val duration = it.getLong(durationColumn)
+                    val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    songs.add(Song(id, title, artist, album, uri, duration))
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         _playlist.value = songs
         originalPlaylist = songs
-        if (songs.isNotEmpty()) {
+        if (songs.isNotEmpty() && _currentSong.value == null) {
             _currentSong.value = songs.first()
         }
     }

@@ -70,6 +70,12 @@ fun MusicPlayerScreen() {
         launcher.launch(permissions)
     }
 
+    LaunchedEffect(hasPermission) {
+        if (hasPermission) {
+            controller.loadLocalSongs()
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             // we no longer release controller on dispose to allow background play

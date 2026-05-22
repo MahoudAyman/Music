@@ -1,5 +1,5 @@
 {
-  "name": "Pulse 3D",
+  "name": "أغاني",
   "description": "تطبيق موسيقى متقدم مع إشعارات ذكية وأقسام",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
